@@ -102,7 +102,7 @@ app.get('/books', authenticateJWT, (req, res) => {
 
 app.post('/books', authenticateJWT, (req, res) => {
     const { role } = req.user;
-
+    
     if (role !== 'admin') {
         return res.sendStatus(403);
     }

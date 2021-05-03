@@ -1,8 +1,6 @@
 var mongoose = require('mongoose');// Setup schema
 var userschema = mongoose.Schema({
-    id:{
-        type:String
-    },
+
     username: {
         type: String,
         required: true
@@ -16,7 +14,7 @@ var userschema = mongoose.Schema({
     
 });
 // Export user model
-var userdataschema = module.exports = mongoose.model('usersdataschema', userschema);
+var bookuser = module.exports = mongoose.model('bookuser', userschema,'bookuser');
 module.exports.get = function (callback, limit) {
-    userdata.find(callback).limit(limit);
+    bookuser.find(callback).limit(limit);
 }

@@ -7,7 +7,7 @@ const app = express();
 var mongo = require('mongodb')
 var MongoClient = require('mongodb').MongoClient;
 const mongoose = require('mongoose');
-userdata = require('.model/userdatashema');
+const userdataschema = require('./model/bookuserschema');
 
 var url = "mongodb://localhost:27017/user";
 
@@ -27,12 +27,6 @@ if(!db)
     console.log("Error connecting db")
 else
     console.log("Db connected successfully to "+db.name)
-
-//var dbo = db.db("user");
-var usersd = db.collection("bookuser").find();
-
-
-
 const books = [
     {
         "author": "Chinua Achebe",
@@ -40,7 +34,7 @@ const books = [
         "language": "English",
         "pages": 209,
         "title": "Things Fall Apart",
-        "year": 1958
+        "year": 1959
     },
     {
         "author": "Hans Christian Andersen",
@@ -88,31 +82,55 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
-app.post('/login', (req, res) => {
-    // Read username and password from request body
-    const { username, password } = req.body;
 
-    // Filter user from the users array by username and password
-    const user = users.find(u => { return u.username === username && u.password === password });
-
-    if (user) {
-        // Generate an access token
-        const accessToken = jwt.sign({ username: user.username,  role: user.role }, accessTokenSecret);
-
+app.get('/users', function (req, res) {
+    
+    userdataschema.find({},function (err, users) {
+        
+         if (err)
+            res.send(err);
         res.json({
-            accessToken
+            
+            message: 'user details loading..',
+            data: users
         });
-    } else {
-        res.send('Username or password incorrect');
-    }
+    });
 });
 
+app.post('/login',async (req, res)=> {
+    
+    const { username, password } = req.body;
+    const users = await userdataschema.findOne({username:username,password:password});
+    /*
+    userdataschema.findOne({username:username,password:password},function(err,users){
+        if (err)
+        res.send(err);
+    */
+    
+    if (users)
+    {       
+        const accessToken = jwt.sign({ username: users.username,  role: users.role }, accessTokenSecret);
+
+        res.json({
+            useris:users.username,
+            roleis:users.role,
+            accessToken
+        });
+    } 
+    else {
+        res.send('Username or password incorrect');
+            }
+    });
+
 app.get('/books', authenticateJWT, (req, res) => {
+
     res.json(books);
 });
 
 app.post('/books', authenticateJWT, (req, res) => {
-    const { role } = req.user;
+    console.log("req is==",req.user.role)
+    const role  = req.user.role;
+    
 
     if (role !== 'admin') {
         return res.sendStatus(403);
