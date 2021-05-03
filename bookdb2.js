@@ -8,6 +8,7 @@ var mongo = require('mongodb')
 var MongoClient = require('mongodb').MongoClient;
 const mongoose = require('mongoose');
 const userdataschema = require('./model/bookuserschema');
+const bookdataschema = require('./model/bookdetailsschema');
 
 var url = "mongodb://localhost:27017/user";
 
@@ -27,32 +28,7 @@ if(!db)
     console.log("Error connecting db")
 else
     console.log("Db connected successfully to "+db.name)
-const books = [
-    {
-        "author": "Chinua Achebe",
-        "country": "Nigeria",
-        "language": "English",
-        "pages": 209,
-        "title": "Things Fall Apart",
-        "year": 1959
-    },
-    {
-        "author": "Hans Christian Andersen",
-        "country": "Denmark",
-        "language": "Danish",
-        "pages": 784,
-        "title": "Fairy tales",
-        "year": 1836
-    },
-    {
-        "author": "Dante Alighieri",
-        "country": "Italy",
-        "language": "Italian",
-        "pages": 928,
-        "title": "The Divine Comedy",
-        "year": 1315
-    },
-];
+
 /* 
 app.get('/books', (req, res) => {
     res.json(books);
@@ -97,15 +73,25 @@ app.get('/users', function (req, res) {
     });
 });
 
+app.get('/booksare', function (req, res) {
+    
+    bookdataschema.find({},function (err, books) {
+        
+         if (err)
+            res.send(err);
+        res.json({
+            
+            message: 'book details loading..',
+            data: books
+        });
+    });
+});
+
 app.post('/login',async (req, res)=> {
     
     const { username, password } = req.body;
     const users = await userdataschema.findOne({username:username,password:password});
-    /*
-    userdataschema.findOne({username:username,password:password},function(err,users){
-        if (err)
-        res.send(err);
-    */
+    
     
     if (users)
     {       
@@ -122,12 +108,21 @@ app.post('/login',async (req, res)=> {
             }
     });
 
-app.get('/books', authenticateJWT, (req, res) => {
+app.get('/getbooks', authenticateJWT, (req, res) => {
 
-    res.json(books);
+    bookdataschema.find({},function (err, books) {
+        
+        if (err)
+           res.send(err);
+       res.json({
+           
+           message: 'book details loading..',
+           data: books
+       });
+   });
 });
 
-app.post('/books', authenticateJWT, (req, res) => {
+app.post('/addbook', authenticateJWT, (req, res) => {
     //console.log("req is==",req.user.role)
     const role  = req.user.role;
     
@@ -138,7 +133,7 @@ app.post('/books', authenticateJWT, (req, res) => {
 
 
     const book = req.body;
-    books.push(book);
+    bookdataschema.create(book);
 
     res.send('Book added successfully');
 });
